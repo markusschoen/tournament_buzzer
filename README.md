@@ -31,11 +31,11 @@ Additional sounds available: Double Blast, High Alert, Falling Siren, Rapid Puls
 1. Go to the [Releases](../../releases) page
 2. Download the executable for your operating system:
    - **Windows**: `tournament-buzzer-windows.exe`
-   - **macOS**: `tournament-buzzer-macos`
+   - **macOS**: `tournament-buzzer-macos.zip` (extract to get the `.app`)
    - **Linux**: `tournament-buzzer-linux`
 3. Run the application
 
-> **Note for macOS users**: You may need to right-click the app and select "Open" the first time to bypass Gatekeeper.
+> **Note for macOS users**: After extracting the zip, you may need to right-click the app and select "Open" the first time to bypass Gatekeeper.
 
 > **Note for Linux users**: You may need to make the file executable first: `chmod +x tournament-buzzer-linux`
 

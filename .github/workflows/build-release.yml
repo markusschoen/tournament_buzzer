@@ -18,8 +18,8 @@ jobs:
             artifact_name: tournament-buzzer-windows.exe
             asset_name: tournament-buzzer-windows.exe
           - os: macos-latest
-            artifact_name: tournament-buzzer-macos
-            asset_name: tournament-buzzer-macos
+            artifact_name: tournament-buzzer-macos.zip
+            asset_name: tournament-buzzer-macos.zip
 
     runs-on: ${{ matrix.os }}
 
@@ -49,17 +49,26 @@ jobs:
           pip install pyinstaller
           pip install .
 
-      - name: Build executable
+      - name: Build executable (Linux)
+        if: runner.os == 'Linux'
         run: |
           pyinstaller --onefile --windowed --name tournament-buzzer main.py
+          mv dist/tournament-buzzer dist/${{ matrix.artifact_name }}
 
-      - name: Rename artifact (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: mv dist/tournament-buzzer dist/${{ matrix.artifact_name }}
-
-      - name: Rename artifact (Windows)
+      - name: Build executable (Windows)
         if: runner.os == 'Windows'
-        run: mv dist/tournament-buzzer.exe dist/${{ matrix.artifact_name }}
+        run: |
+          pyinstaller --onefile --windowed --name tournament-buzzer main.py
+          mv dist/tournament-buzzer.exe dist/${{ matrix.artifact_name }}
+
+      - name: Build macOS app bundle
+        if: runner.os == 'macOS'
+        run: |
+          pyinstaller --onefile --windowed --name "Tournament Buzzer" \
+            --osx-bundle-identifier com.markusschoen.tournamentbuzzer \
+            main.py
+          cd dist
+          zip -r tournament-buzzer-macos.zip "Tournament Buzzer.app"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -87,5 +96,5 @@ jobs:
           files: |
             artifacts/tournament-buzzer-linux/tournament-buzzer-linux
             artifacts/tournament-buzzer-windows.exe/tournament-buzzer-windows.exe
-            artifacts/tournament-buzzer-macos/tournament-buzzer-macos
+            artifacts/tournament-buzzer-macos.zip/tournament-buzzer-macos.zip
           generate_release_notes: true
