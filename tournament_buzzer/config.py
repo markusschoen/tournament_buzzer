@@ -37,6 +37,7 @@ class AppConfig:
     title: str = "HEMA Tournament Buzzer"
     window_size: str = "500x700"
     log_file: Path = field(default_factory=lambda: Path("tournament_log.json"))
+    log_enabled: bool = False  # Disable file logging by default
 
 
 # Default trigger keys - can be customized per installation
@@ -47,8 +48,20 @@ DEFAULT_TRIGGER_KEYS = [
     keyboard.Key.page_up,
 ]
 
-# Available sound types
+# Available sound types - ordered for tournament ring assignment
+# Recommended assignment: Ring 1=Low Horn, Ring 2=Triple Pulse, Ring 3=Rising Siren, Ring 4=Staccato Beeps
 SOUND_OPTIONS = [
+    # Primary tournament sounds (designed for maximum distinguishability)
+    "Low Horn",  # Ring 1: Deep powerful blast (220Hz) - unmistakable low end
+    "Triple Pulse",  # Ring 2: Three quick mid-range beeps (660Hz) - rhythmic pattern
+    "Rising Siren",  # Ring 3: Upward frequency sweep (400-1000Hz) - distinctive motion
+    "Staccato Beeps",  # Ring 4: Four descending notes - musical pattern
+    # Additional tournament options
+    "Double Blast",  # Two powerful horn blasts
+    "High Alert",  # High-pitched attention grabber (880Hz)
+    "Falling Siren",  # Downward sweep (opposite of Rising Siren)
+    "Rapid Pulse",  # Five quick beeps for urgency
+    # Legacy sounds (kept for backwards compatibility)
     "Standard Beep",
     "Retro Buzzer",
     "Sci-Fi Chirp",

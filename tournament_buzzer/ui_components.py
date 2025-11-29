@@ -9,7 +9,7 @@ from tkinter import ttk
 from typing import Callable
 
 
-def create_status_display(parent: tk.Widget) -> tuple[tk.Frame, tk.Label, tk.Label]:
+def create_status_display(parent: tk.Misc) -> tuple[tk.Frame, tk.Label, tk.Label]:
     """Create the main status display area.
 
     Args:
@@ -70,7 +70,7 @@ class LockableCombobox:
 
     def __init__(
         self,
-        parent: tk.Frame,
+        parent: tk.Misc,
         label_text: str,
         options: list[str],
         initial_value: str,
@@ -176,7 +176,7 @@ class LockableSpinbox:
 
     def __init__(
         self,
-        parent: tk.Frame,
+        parent: tk.Misc,
         label_text: str,
         initial_value: float,
         min_value: float,
@@ -271,7 +271,7 @@ class LockableSpinbox:
 
 
 def create_volume_slider(
-    parent: tk.Widget,
+    parent: tk.Misc,
     initial_value: float,
     on_change: Callable[[float], None],
 ) -> tuple[tk.Frame, ttk.Scale, tk.Label]:
@@ -312,7 +312,7 @@ def create_volume_slider(
     return frame, slider, value_label
 
 
-def create_log_display(parent: tk.Widget) -> tuple[tk.LabelFrame, tk.Text]:
+def create_log_display(parent: tk.Misc) -> tuple[tk.LabelFrame, tk.Text]:
     """Create the event log display area.
 
     Args:

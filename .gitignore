@@ -87,3 +87,6 @@ dmypy.json
 
 # Local development
 *.log
+
+# Tournament buzzer specific
+tournament_log*.json

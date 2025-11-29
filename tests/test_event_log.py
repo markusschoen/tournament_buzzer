@@ -2,9 +2,7 @@
 
 import json
 from datetime import datetime
-from pathlib import Path
 
-import pytest
 
 from tournament_buzzer.event_log import (
     create_log_entry,
@@ -69,7 +67,9 @@ class TestSaveLog:
 
     def test_overwrites_existing_file(self, populated_log_file):
         """Test that existing file is overwritten."""
-        new_entries = [{"timestamp": "2025-11-29T12:00:00", "sound": "New", "key": None}]
+        new_entries = [
+            {"timestamp": "2025-11-29T12:00:00", "sound": "New", "key": None}
+        ]
         save_log(populated_log_file, new_entries)
 
         with open(populated_log_file) as f:
@@ -106,7 +106,9 @@ class TestExportLog:
         assert result is not None
         assert "custom_export_" in result.name
 
-    def test_exported_content_matches_entries(self, sample_log_entries, tmp_path, monkeypatch):
+    def test_exported_content_matches_entries(
+        self, sample_log_entries, tmp_path, monkeypatch
+    ):
         """Test that exported content matches original entries."""
         monkeypatch.chdir(tmp_path)
 
@@ -192,7 +194,12 @@ class TestFormatLogEntry:
 
     def test_format_different_sounds(self):
         """Test formatting with different sound names."""
-        for sound in ["Standard Beep", "Retro Buzzer", "Sci-Fi Chirp", "Penalty Whistle"]:
+        for sound in [
+            "Standard Beep",
+            "Retro Buzzer",
+            "Sci-Fi Chirp",
+            "Penalty Whistle",
+        ]:
             entry = {"timestamp": "2025-11-29T10:00:00", "sound": sound, "key": None}
             result = format_log_entry(entry)
             assert sound in result

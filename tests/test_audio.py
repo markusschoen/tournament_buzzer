@@ -1,9 +1,6 @@
 """Tests for the audio module."""
 
-from unittest.mock import MagicMock, patch
-
 import numpy as np
-import pytest
 
 from tournament_buzzer.audio import (
     AudioEngine,
@@ -82,7 +79,7 @@ class TestAudioEngine:
 
     def test_initialization_with_device(self, mock_sounddevice):
         """Test initialization with specific device."""
-        engine = AudioEngine(device=1)
+        _engine = AudioEngine(device=1)
 
         # Check that OutputStream was called with device=1
         call_kwargs = mock_sounddevice.OutputStream.call_args[1]
@@ -92,7 +89,12 @@ class TestAudioEngine:
         """Test setting different sound types."""
         engine = AudioEngine()
 
-        for sound in ["Standard Beep", "Retro Buzzer", "Sci-Fi Chirp", "Penalty Whistle"]:
+        for sound in [
+            "Standard Beep",
+            "Retro Buzzer",
+            "Sci-Fi Chirp",
+            "Penalty Whistle",
+        ]:
             engine.set_sound(sound)
             assert engine._current_sound == sound
 

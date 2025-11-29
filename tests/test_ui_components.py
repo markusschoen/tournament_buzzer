@@ -66,8 +66,7 @@ class TestUpdateStatusDisplay:
         frame, status_label, info_label = create_status_display(tk_root)
 
         update_status_display(
-            frame, status_label, info_label,
-            "TEST", "#ff0000", "Test info"
+            frame, status_label, info_label, "TEST", "#ff0000", "Test info"
         )
 
         assert status_label.cget("text") == "TEST"
@@ -81,10 +80,7 @@ class TestLockableCombobox:
     def test_initialization(self, tk_root):
         """Test that combobox initializes correctly."""
         combo = LockableCombobox(
-            tk_root,
-            "Test Label:",
-            ["Option 1", "Option 2"],
-            "Option 1"
+            tk_root, "Test Label:", ["Option 1", "Option 2"], "Option 1"
         )
 
         assert combo.is_locked is True
@@ -92,12 +88,7 @@ class TestLockableCombobox:
 
     def test_toggle_unlocks(self, tk_root):
         """Test that toggle unlocks the combobox."""
-        combo = LockableCombobox(
-            tk_root,
-            "Test:",
-            ["A", "B"],
-            "A"
-        )
+        combo = LockableCombobox(tk_root, "Test:", ["A", "B"], "A")
 
         combo._toggle()
 
@@ -107,13 +98,7 @@ class TestLockableCombobox:
     def test_toggle_locks_and_calls_callback(self, tk_root):
         """Test that toggle locks and calls callback."""
         callback = MagicMock()
-        combo = LockableCombobox(
-            tk_root,
-            "Test:",
-            ["A", "B"],
-            "A",
-            on_change=callback
-        )
+        combo = LockableCombobox(tk_root, "Test:", ["A", "B"], "A", on_change=callback)
 
         # Unlock first
         combo._toggle()
@@ -127,12 +112,7 @@ class TestLockableCombobox:
 
     def test_lock_if_unlocked(self, tk_root):
         """Test lock_if_unlocked method."""
-        combo = LockableCombobox(
-            tk_root,
-            "Test:",
-            ["A", "B"],
-            "A"
-        )
+        combo = LockableCombobox(tk_root, "Test:", ["A", "B"], "A")
 
         # Already locked - should do nothing
         combo.lock_if_unlocked()
@@ -147,12 +127,7 @@ class TestLockableCombobox:
 
     def test_update_options(self, tk_root):
         """Test updating available options."""
-        combo = LockableCombobox(
-            tk_root,
-            "Test:",
-            ["A", "B"],
-            "A"
-        )
+        combo = LockableCombobox(tk_root, "Test:", ["A", "B"], "A")
 
         combo.update_options(["X", "Y", "Z"])
 
@@ -165,28 +140,14 @@ class TestLockableSpinbox:
 
     def test_initialization(self, tk_root):
         """Test that spinbox initializes correctly."""
-        spinbox = LockableSpinbox(
-            tk_root,
-            "Value:",
-            5.0,
-            0.0,
-            10.0,
-            0.5
-        )
+        spinbox = LockableSpinbox(tk_root, "Value:", 5.0, 0.0, 10.0, 0.5)
 
         assert spinbox.is_locked is True
         assert spinbox.get_value() == 5.0
 
     def test_toggle_unlocks(self, tk_root):
         """Test that toggle unlocks the spinbox."""
-        spinbox = LockableSpinbox(
-            tk_root,
-            "Value:",
-            5.0,
-            0.0,
-            10.0,
-            0.5
-        )
+        spinbox = LockableSpinbox(tk_root, "Value:", 5.0, 0.0, 10.0, 0.5)
 
         spinbox._toggle()
 
@@ -195,14 +156,7 @@ class TestLockableSpinbox:
 
     def test_toggle_locks_and_clamps_value(self, tk_root):
         """Test that toggle locks and clamps value to range."""
-        spinbox = LockableSpinbox(
-            tk_root,
-            "Value:",
-            5.0,
-            0.0,
-            10.0,
-            0.5
-        )
+        spinbox = LockableSpinbox(tk_root, "Value:", 5.0, 0.0, 10.0, 0.5)
 
         # Unlock
         spinbox._toggle()
@@ -217,13 +171,7 @@ class TestLockableSpinbox:
         """Test that callback is called when locking."""
         callback = MagicMock()
         spinbox = LockableSpinbox(
-            tk_root,
-            "Value:",
-            5.0,
-            0.0,
-            10.0,
-            0.5,
-            on_change=callback
+            tk_root, "Value:", 5.0, 0.0, 10.0, 0.5, on_change=callback
         )
 
         spinbox._toggle()  # unlock
@@ -235,13 +183,7 @@ class TestLockableSpinbox:
     def test_format_string(self, tk_root):
         """Test custom format string."""
         spinbox = LockableSpinbox(
-            tk_root,
-            "Value:",
-            5.0,
-            0.0,
-            10.0,
-            0.5,
-            format_str="{:.2f} units"
+            tk_root, "Value:", 5.0, 0.0, 10.0, 0.5, format_str="{:.2f} units"
         )
 
         assert "5.00 units" in spinbox.value_label.cget("text")

@@ -32,7 +32,7 @@ def get_default_device_name() -> str | None:
     """Get the name of the default output device."""
     try:
         device = sd.query_devices(kind="output")
-        return device["name"]
+        return str(device["name"])
     except Exception:
         return None
 

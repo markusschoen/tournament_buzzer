@@ -3,12 +3,17 @@
 import numpy as np
 import pytest
 
-from tournament_buzzer.config import AudioConfig
+from tournament_buzzer.config import AudioConfig, SOUND_OPTIONS
 from tournament_buzzer.waveforms import (
     apply_fade_out,
     generate_frequency_sweep,
+    generate_horn_blast,
+    generate_pulsed_tone,
+    generate_sawtooth_wave,
     generate_sine_wave,
+    generate_siren_sweep,
     generate_square_wave,
+    generate_staccato_beeps,
     generate_two_tone,
     generate_waveform,
     to_stereo_float32,
@@ -200,7 +205,7 @@ class TestGenerateWaveform:
 
     @pytest.mark.parametrize(
         "sound_name",
-        ["Standard Beep", "Retro Buzzer", "Sci-Fi Chirp", "Penalty Whistle"],
+        SOUND_OPTIONS,
     )
     def test_generates_all_sound_types(self, sound_name):
         """Test that all sound types can be generated."""
@@ -233,3 +238,124 @@ class TestGenerateWaveform:
         short = generate_waveform("Standard Beep", 0.1)
         long = generate_waveform("Standard Beep", 0.5)
         assert len(short) < len(long)
+
+
+class TestGenerateSawtoothWave:
+    """Tests for generate_sawtooth_wave function."""
+
+    def test_returns_numpy_array(self):
+        """Test that function returns a numpy array."""
+        wave = generate_sawtooth_wave(440, 1.0, 0.5, 44100)
+        assert isinstance(wave, np.ndarray)
+
+    def test_correct_length(self):
+        """Test that output has correct number of samples."""
+        duration = 0.5
+        sample_rate = 44100
+        wave = generate_sawtooth_wave(440, duration, 0.5, sample_rate)
+        expected_length = int(sample_rate * duration)
+        assert len(wave) == expected_length
+
+    def test_amplitude_bounds(self):
+        """Test that wave amplitude stays within bounds."""
+        amplitude = 0.5
+        wave = generate_sawtooth_wave(440, 1.0, amplitude, 44100)
+        assert np.max(np.abs(wave)) <= amplitude + 1e-10
+
+
+class TestGeneratePulsedTone:
+    """Tests for generate_pulsed_tone function."""
+
+    def test_returns_numpy_array(self):
+        """Test that function returns a numpy array."""
+        wave = generate_pulsed_tone(660, 1.0, 0.5, 44100, pulse_count=3)
+        assert isinstance(wave, np.ndarray)
+
+    def test_correct_length(self):
+        """Test that output has correct number of samples."""
+        duration = 0.5
+        sample_rate = 44100
+        wave = generate_pulsed_tone(660, duration, 0.5, sample_rate, pulse_count=3)
+        expected_length = int(sample_rate * duration)
+        assert len(wave) == expected_length
+
+    def test_has_silent_gaps(self):
+        """Test that pulsed tone has silent gaps between pulses."""
+        wave = generate_pulsed_tone(660, 1.0, 0.5, 44100, pulse_count=3, duty_cycle=0.5)
+        # There should be some zero values (gaps between pulses)
+        zero_count = np.sum(np.abs(wave) < 0.01)
+        assert zero_count > 0
+
+
+class TestGenerateHornBlast:
+    """Tests for generate_horn_blast function."""
+
+    def test_returns_numpy_array(self):
+        """Test that function returns a numpy array."""
+        wave = generate_horn_blast(220, 1.0, 0.5, 44100)
+        assert isinstance(wave, np.ndarray)
+
+    def test_correct_length(self):
+        """Test that output has correct number of samples."""
+        duration = 0.5
+        sample_rate = 44100
+        wave = generate_horn_blast(220, duration, 0.5, sample_rate)
+        expected_length = int(sample_rate * duration)
+        assert len(wave) == expected_length
+
+    def test_has_attack_envelope(self):
+        """Test that horn has attack envelope (starts quieter)."""
+        wave = generate_horn_blast(220, 1.0, 0.5, 44100)
+        # First few samples should be quieter than samples later
+        early_max = np.max(np.abs(wave[:100]))
+        mid_max = np.max(np.abs(wave[5000:5100]))
+        assert early_max < mid_max
+
+
+class TestGenerateSirenSweep:
+    """Tests for generate_siren_sweep function."""
+
+    def test_returns_numpy_array(self):
+        """Test that function returns a numpy array."""
+        wave = generate_siren_sweep(400, 1000, 1.0, 0.5, 44100)
+        assert isinstance(wave, np.ndarray)
+
+    def test_correct_length(self):
+        """Test that output has correct number of samples."""
+        duration = 0.5
+        sample_rate = 44100
+        wave = generate_siren_sweep(400, 1000, duration, 0.5, sample_rate)
+        expected_length = int(sample_rate * duration)
+        assert len(wave) == expected_length
+
+    def test_amplitude_bounds(self):
+        """Test that wave amplitude stays within bounds."""
+        amplitude = 0.45
+        wave = generate_siren_sweep(400, 1000, 1.0, amplitude, 44100)
+        assert np.max(np.abs(wave)) <= amplitude + 1e-10
+
+
+class TestGenerateStaccatoBeeps:
+    """Tests for generate_staccato_beeps function."""
+
+    def test_returns_numpy_array(self):
+        """Test that function returns a numpy array."""
+        wave = generate_staccato_beeps([880, 660, 495, 370], 1.0, 0.5, 44100)
+        assert isinstance(wave, np.ndarray)
+
+    def test_correct_length(self):
+        """Test that output has correct number of samples."""
+        duration = 0.5
+        sample_rate = 44100
+        wave = generate_staccato_beeps([880, 660], duration, 0.5, sample_rate)
+        expected_length = int(sample_rate * duration)
+        assert len(wave) == expected_length
+
+    def test_has_gaps_between_beeps(self):
+        """Test that staccato beeps have gaps between them."""
+        wave = generate_staccato_beeps(
+            [880, 660, 495, 370], 1.0, 0.5, 44100, gap_ratio=0.3
+        )
+        # There should be some zero values (gaps between beeps)
+        zero_count = np.sum(np.abs(wave) < 0.01)
+        assert zero_count > 0

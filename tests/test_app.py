@@ -107,21 +107,22 @@ class TestBuzzerApp:
         assert app.audio_config is not None
         assert app.timing_config is not None
 
-    def test_custom_configs(self, mock_audio_engine, mock_keyboard, mock_devices, tmp_path):
+    def test_custom_configs(
+        self, mock_audio_engine, mock_keyboard, mock_devices, tmp_path
+    ):
         """Test that custom configs are respected."""
         try:
             audio_config = AudioConfig(sample_rate=48000)
             timing_config = TimingConfig(default_delay=1.0)
             app_config = AppConfig(
-                title="Custom Title",
-                log_file=tmp_path / "test.json"
+                title="Custom Title", log_file=tmp_path / "test.json"
             )
 
             app = BuzzerApp(
                 app_config=app_config,
                 audio_config=audio_config,
                 timing_config=timing_config,
-                trigger_keys=[]
+                trigger_keys=[],
             )
             app.withdraw()
 
@@ -220,7 +221,9 @@ class TestBuzzerAppIntegration:
         with patch("tournament_buzzer.app.AudioEngine") as mock_audio:
             with patch("tournament_buzzer.app.keyboard") as mock_kb:
                 with patch("tournament_buzzer.app.get_output_devices") as mock_get:
-                    with patch("tournament_buzzer.app.get_default_device_name") as mock_default:
+                    with patch(
+                        "tournament_buzzer.app.get_default_device_name"
+                    ) as mock_default:
                         mock_audio.return_value = MagicMock()
                         mock_kb.Listener.return_value = MagicMock()
                         mock_get.return_value = [(0, "Test Device")]
@@ -254,6 +257,7 @@ class TestBuzzerAppIntegration:
 
             # Manually add a log entry through the internal method
             from tournament_buzzer.event_log import create_log_entry, save_log
+
             entry = create_log_entry("Test Sound", "test_key")
             app._event_log.append(entry)
             save_log(log_file, app._event_log)

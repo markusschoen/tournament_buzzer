@@ -21,6 +21,7 @@ from .config import (
     TimingConfig,
 )
 from .event_log import (
+    LogEntry,
     create_log_entry,
     export_log,
     format_log_entry,
@@ -49,10 +50,7 @@ def format_trigger_keys(keys: list, max_display: int = 8) -> str:
     Returns:
         Formatted string of key names
     """
-    key_names = [
-        str(k).replace("Key.", "").replace("KeyCode.", "")
-        for k in keys
-    ]
+    key_names = [str(k).replace("Key.", "").replace("KeyCode.", "") for k in keys]
     display = ", ".join(key_names[:max_display])
     if len(keys) > max_display:
         display += "..."
@@ -87,7 +85,9 @@ class BuzzerApp(tk.Tk):
 
         # State
         self._cooldown_locked = False
-        self._event_log = load_log(self.app_config.log_file)
+        self._event_log: list[LogEntry] = []
+        if self.app_config.log_enabled:
+            self._event_log = load_log(self.app_config.log_file)
 
         # Initialize audio
         self._audio = AudioEngine(self.audio_config)
@@ -117,8 +117,9 @@ class BuzzerApp(tk.Tk):
     def _build_ui(self) -> None:
         """Build the user interface."""
         # Status display
-        self._status_frame, self._status_label, self._info_label = \
+        self._status_frame, self._status_label, self._info_label = (
             create_status_display(self)
+        )
 
         # Sound selector
         self._sound_selector = LockableCombobox(
@@ -325,7 +326,8 @@ class BuzzerApp(tk.Tk):
         # Add log entry
         entry = create_log_entry(current_sound, key_info)
         self._event_log.append(entry)
-        save_log(self.app_config.log_file, self._event_log)
+        if self.app_config.log_enabled:
+            save_log(self.app_config.log_file, self._event_log)
         self._update_log_display(entry)
 
         # Update status
@@ -347,30 +349,39 @@ class BuzzerApp(tk.Tk):
         self._audio.trigger()
 
         # Update to triggered state
-        self.after(0, lambda: self._update_status(
-            "STOP!",
-            COLORS["triggered"],
-            "Sound Playing",
-        ))
+        self.after(
+            0,
+            lambda: self._update_status(
+                "STOP!",
+                COLORS["triggered"],
+                "Sound Playing",
+            ),
+        )
 
         # Cooldown
         remaining = self._cooldown_seconds - self._delay_seconds
         if remaining > 0:
             time.sleep(0.5)
-            self.after(0, lambda: self._update_status(
-                "COOLDOWN",
-                COLORS["cooldown"],
-                "Ignoring inputs...",
-            ))
+            self.after(
+                0,
+                lambda: self._update_status(
+                    "COOLDOWN",
+                    COLORS["cooldown"],
+                    "Ignoring inputs...",
+                ),
+            )
             time.sleep(remaining - 0.5)
 
         # Ready again
         self._cooldown_locked = False
-        self.after(0, lambda: self._update_status(
-            "READY",
-            COLORS["ready"],
-            "Waiting for signals...",
-        ))
+        self.after(
+            0,
+            lambda: self._update_status(
+                "READY",
+                COLORS["ready"],
+                "Waiting for signals...",
+            ),
+        )
 
     def _update_status(self, main_text: str, bg_color: str, sub_text: str) -> None:
         """Update the status display."""
@@ -383,7 +394,7 @@ class BuzzerApp(tk.Tk):
             sub_text,
         )
 
-    def _update_log_display(self, entry: dict) -> None:
+    def _update_log_display(self, entry: LogEntry) -> None:
         """Update the log display with a new entry."""
         line = format_log_entry(entry, self._debug_mode.get())
         append_to_log_display(self._log_text, line)
@@ -396,7 +407,8 @@ class BuzzerApp(tk.Tk):
     def _clear_log(self) -> None:
         """Clear the event log."""
         self._event_log = []
-        save_log(self.app_config.log_file, self._event_log)
+        if self.app_config.log_enabled:
+            save_log(self.app_config.log_file, self._event_log)
         clear_log_display(self._log_text)
 
     def _export_log(self) -> None:

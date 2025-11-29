@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-import pytest
 from pynput import keyboard
 
 from tournament_buzzer.config import (
@@ -111,7 +110,9 @@ class TestConstants:
     def test_trigger_keys_are_keyboard_keys(self):
         """Test that trigger keys are valid keyboard keys."""
         for key in DEFAULT_TRIGGER_KEYS:
-            assert hasattr(keyboard.Key, key.name) or hasattr(keyboard.KeyCode, "from_char")
+            assert hasattr(keyboard.Key, key.name) or hasattr(
+                keyboard.KeyCode, "from_char"
+            )
 
     def test_sound_options_not_empty(self):
         """Test that SOUND_OPTIONS is not empty."""
@@ -125,7 +126,14 @@ class TestConstants:
 
     def test_colors_has_required_keys(self):
         """Test that COLORS has all required keys."""
-        required_keys = {"ready", "waiting", "triggered", "cooldown", "locked", "unlocked"}
+        required_keys = {
+            "ready",
+            "waiting",
+            "triggered",
+            "cooldown",
+            "locked",
+            "unlocked",
+        }
         assert required_keys <= set(COLORS.keys())
 
     def test_colors_are_valid(self):

@@ -7,7 +7,7 @@ Uses a simple JSON-based storage format.
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import TypedDict
+from typing import TypedDict, cast
 
 from loguru import logger
 
@@ -34,7 +34,7 @@ def load_log(log_file: Path) -> list[LogEntry]:
 
     try:
         with open(log_file, "r") as f:
-            return json.load(f)
+            return cast(list[LogEntry], json.load(f))
     except (json.JSONDecodeError, IOError) as e:
         logger.warning(f"Could not load log file: {e}")
         return []
@@ -59,7 +59,9 @@ def save_log(log_file: Path, entries: list[LogEntry]) -> bool:
         return False
 
 
-def export_log(entries: list[LogEntry], base_name: str = "tournament_log") -> Path | None:
+def export_log(
+    entries: list[LogEntry], base_name: str = "tournament_log"
+) -> Path | None:
     """Export the log to a timestamped file.
 
     Args:

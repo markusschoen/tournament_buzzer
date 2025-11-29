@@ -1,8 +1,6 @@
 """Pytest configuration and shared fixtures."""
 
 import json
-import tempfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -38,9 +36,17 @@ def temp_log_file(tmp_path):
 def sample_log_entries():
     """Provide sample log entries for testing."""
     return [
-        {"timestamp": "2025-11-29T10:00:00", "sound": "Standard Beep", "key": "page_up"},
+        {
+            "timestamp": "2025-11-29T10:00:00",
+            "sound": "Standard Beep",
+            "key": "page_up",
+        },
         {"timestamp": "2025-11-29T10:01:00", "sound": "Retro Buzzer", "key": None},
-        {"timestamp": "2025-11-29T10:02:00", "sound": "Sci-Fi Chirp", "key": "page_down"},
+        {
+            "timestamp": "2025-11-29T10:02:00",
+            "sound": "Sci-Fi Chirp",
+            "key": "page_down",
+        },
     ]
 
 
@@ -58,15 +64,19 @@ def mock_sounddevice():
     with patch("tournament_buzzer.audio.sd") as mock_sd:
         # Mock query_devices to return some fake devices
         mock_sd.query_devices.return_value = [
-            {"name": "Built-in Output", "max_output_channels": 2, "max_input_channels": 0},
+            {
+                "name": "Built-in Output",
+                "max_output_channels": 2,
+                "max_input_channels": 0,
+            },
             {"name": "USB Audio", "max_output_channels": 2, "max_input_channels": 0},
             {"name": "Microphone", "max_output_channels": 0, "max_input_channels": 1},
         ]
-        
+
         # Mock OutputStream
         mock_stream = MagicMock()
         mock_sd.OutputStream.return_value = mock_stream
-        
+
         yield mock_sd
 
 
