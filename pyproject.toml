@@ -1,20 +1,28 @@
 [project]
 name = "tournament-buzzer"
 version = "0.1.0"
-description = "Add your description here"
+description = "HEMA Tournament Buzzer - A customizable sound buzzer for tournament rings"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "codespell>=2.4.1",
     "loguru>=0.7.3",
-    "mypy>=1.19.0",
     "numpy>=2.3.5",
-    "pre-commit>=4.5.0",
     "pynput>=1.8.1",
-    "pytest>=9.0.1",
-    "ruff>=0.14.7",
     "sounddevice>=0.5.3",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "codespell>=2.4.1",
+    "mypy>=1.19.0",
+    "pre-commit>=4.5.0",
+    "pytest>=9.0.1",
+    "ruff>=0.14.7",
+    "pyinstaller>=6.0.0",
+]
+
+[project.scripts]
+tournament-buzzer = "tournament_buzzer.app:main"
 
 [tool.mypy]
 python_version = "3.13"
