@@ -19,6 +19,9 @@ from .config import (
     AppConfig,
     AudioConfig,
     TimingConfig,
+    get_factory_defaults,
+    load_user_defaults,
+    save_user_defaults,
 )
 from .event_log import (
     LogEntry,
@@ -77,10 +80,16 @@ class BuzzerApp(tk.Tk):
         """
         super().__init__()
 
+        # Load user defaults if no config provided
+        if audio_config is None or timing_config is None:
+            user_audio, user_timing = load_user_defaults()
+            audio_config = audio_config or user_audio
+            timing_config = timing_config or user_timing
+
         # Configuration
         self.app_config = app_config or AppConfig()
-        self.audio_config = audio_config or AudioConfig()
-        self.timing_config = timing_config or TimingConfig()
+        self.audio_config = audio_config
+        self.timing_config = timing_config
         self.trigger_keys = trigger_keys or DEFAULT_TRIGGER_KEYS
 
         # State
@@ -96,6 +105,7 @@ class BuzzerApp(tk.Tk):
         self._delay_seconds = self.timing_config.default_delay
         self._cooldown_seconds = self.timing_config.default_cooldown
         self._duration_seconds = self.audio_config.default_duration
+        self._volume = self.audio_config.default_volume
 
         # Debug mode
         self._debug_mode = tk.BooleanVar(value=False)
@@ -178,11 +188,16 @@ class BuzzerApp(tk.Tk):
         )
 
         # Volume slider
-        create_volume_slider(
-            self,
-            self.audio_config.default_volume * 100,
-            self._audio.set_volume,
+        self._volume_slider_frame, self._volume_slider, self._volume_label = (
+            create_volume_slider(
+                self,
+                self.audio_config.default_volume * 100,
+                self._on_volume_change,
+            )
         )
+
+        # Configuration buttons
+        self._setup_config_buttons()
 
         # Debug controls
         self._setup_debug_controls()
@@ -247,6 +262,29 @@ class BuzzerApp(tk.Tk):
             command=self._export_log,
         ).pack(side=tk.RIGHT, padx=5)
 
+    def _setup_config_buttons(self) -> None:
+        """Setup configuration save/reset buttons."""
+        frame = tk.LabelFrame(self, text="Configuration")
+        frame.pack(fill=tk.X, padx=10, pady=5)
+
+        ttk.Button(
+            frame,
+            text="Save as Defaults",
+            command=self._save_as_defaults,
+        ).pack(side=tk.LEFT, padx=5, pady=5)
+
+        ttk.Button(
+            frame,
+            text="Reset to Defaults",
+            command=self._reset_to_defaults,
+        ).pack(side=tk.LEFT, padx=5, pady=5)
+
+        ttk.Button(
+            frame,
+            text="Factory Reset",
+            command=self._factory_reset,
+        ).pack(side=tk.LEFT, padx=5, pady=5)
+
     def _setup_trigger_keys_info(self) -> None:
         """Setup the trigger keys information display."""
         frame = tk.LabelFrame(self, text="Trigger Keys")
@@ -290,6 +328,11 @@ class BuzzerApp(tk.Tk):
         self._duration_seconds = value
         self._audio.set_duration(value)
         self._add_debug_log(f"Duration locked to: {value:.1f}s")
+
+    def _on_volume_change(self, value: float) -> None:
+        """Handle volume setting change."""
+        self._volume = value
+        self._audio.set_volume(value)
 
     def _refresh_devices(self) -> None:
         """Refresh the list of audio devices."""
@@ -416,6 +459,82 @@ class BuzzerApp(tk.Tk):
         export_path = export_log(self._event_log)
         if export_path:
             self._add_debug_log(f"Log exported to {export_path}")
+
+    def _save_as_defaults(self) -> None:
+        """Save current settings as new defaults."""
+        # Create config objects from current settings
+        audio_config = AudioConfig(
+            sample_rate=self.audio_config.sample_rate,
+            default_duration=self._duration_seconds,
+            default_volume=self._volume,
+            fade_samples=self.audio_config.fade_samples,
+        )
+        timing_config = TimingConfig(
+            default_delay=self._delay_seconds,
+            default_cooldown=self._cooldown_seconds,
+            min_delay=self.timing_config.min_delay,
+            max_delay=self.timing_config.max_delay,
+            min_cooldown=self.timing_config.min_cooldown,
+            max_cooldown=self.timing_config.max_cooldown,
+            min_duration=self.timing_config.min_duration,
+            max_duration=self.timing_config.max_duration,
+        )
+
+        if save_user_defaults(audio_config, timing_config):
+            self._add_debug_log("Settings saved as defaults")
+            # Update stored configs
+            self.audio_config = audio_config
+            self.timing_config = timing_config
+        else:
+            self._add_debug_log("Failed to save defaults")
+
+    def _reset_to_defaults(self) -> None:
+        """Reset all settings to user defaults (or factory defaults if no user config)."""
+        audio_config, timing_config = load_user_defaults()
+        self._apply_config(audio_config, timing_config)
+        self._add_debug_log("Settings reset to user defaults")
+
+    def _factory_reset(self) -> None:
+        """Reset all settings to factory defaults with user confirmation."""
+        from tkinter import messagebox
+
+        if messagebox.askyesno(
+            "Factory Reset",
+            "Are you sure you want to reset all settings to factory defaults?\n\n"
+            "This will discard any saved user defaults.",
+        ):
+            audio_config, timing_config = get_factory_defaults()
+            self._apply_config(audio_config, timing_config)
+            self._add_debug_log("Settings reset to factory defaults")
+
+    def _apply_config(
+        self, audio_config: AudioConfig, timing_config: TimingConfig
+    ) -> None:
+        """Apply configuration to UI and internal state.
+
+        Args:
+            audio_config: Audio configuration to apply
+            timing_config: Timing configuration to apply
+        """
+        # Update internal state
+        self._delay_seconds = timing_config.default_delay
+        self._cooldown_seconds = timing_config.default_cooldown
+        self._duration_seconds = audio_config.default_duration
+        self._volume = audio_config.default_volume
+
+        # Update UI controls
+        self._delay_control.set_value(timing_config.default_delay)
+        self._cooldown_control.set_value(timing_config.default_cooldown)
+        self._duration_control.set_value(audio_config.default_duration)
+
+        # Update volume slider
+        self._volume_slider.set(audio_config.default_volume * 100)
+        self._volume_label.config(text=f"{int(audio_config.default_volume * 100)}%")
+        self._audio.set_volume(audio_config.default_volume)
+
+        # Update stored configs
+        self.audio_config = audio_config
+        self.timing_config = timing_config
 
     def _on_close(self) -> None:
         """Handle application close."""

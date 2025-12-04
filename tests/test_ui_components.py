@@ -188,6 +188,31 @@ class TestLockableSpinbox:
 
         assert "5.00 units" in spinbox.value_label.cget("text")
 
+    def test_set_value(self, tk_root):
+        """Test set_value method updates value and UI."""
+        callback = MagicMock()
+        spinbox = LockableSpinbox(
+            tk_root, "Value:", 5.0, 0.0, 10.0, 0.5, on_change=callback
+        )
+
+        spinbox.set_value(7.5)
+
+        assert spinbox.get_value() == 7.5
+        assert "7.5" in spinbox.value_label.cget("text")
+        callback.assert_called_once_with(7.5)
+
+    def test_set_value_clamps_to_range(self, tk_root):
+        """Test set_value clamps value to min/max range."""
+        spinbox = LockableSpinbox(tk_root, "Value:", 5.0, 0.0, 10.0, 0.5)
+
+        # Test clamping above max
+        spinbox.set_value(15.0)
+        assert spinbox.get_value() == 10.0
+
+        # Test clamping below min
+        spinbox.set_value(-5.0)
+        assert spinbox.get_value() == 0.0
+
 
 class TestCreateVolumeSlider:
     """Tests for create_volume_slider function."""

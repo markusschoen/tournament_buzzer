@@ -269,6 +269,18 @@ class LockableSpinbox:
         """Get the current value."""
         return self._current_value
 
+    def set_value(self, value: float) -> None:
+        """Set the current value programmatically.
+
+        Args:
+            value: The new value to set
+        """
+        self._current_value = max(self.min_value, min(self.max_value, value))
+        self.var.set(self._current_value)
+        self.value_label.config(text=self.format_str.format(self._current_value))
+        if self.on_change:
+            self.on_change(self._current_value)
+
 
 def create_volume_slider(
     parent: tk.Misc,

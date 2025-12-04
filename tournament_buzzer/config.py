@@ -1,9 +1,15 @@
 """Configuration constants and settings for the tournament buzzer."""
 
-from dataclasses import dataclass, field
+import json
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Any
 
+from loguru import logger
 from pynput import keyboard
+
+# Default path for user configuration file
+USER_CONFIG_FILE = Path.home() / ".tournament_buzzer_config.json"
 
 
 @dataclass
@@ -77,3 +83,78 @@ COLORS = {
     "locked": "#2ecc71",
     "unlocked": "#e67e22",
 }
+
+
+def save_user_defaults(audio_config: AudioConfig, timing_config: TimingConfig) -> bool:
+    """Save current settings as user defaults.
+
+    Args:
+        audio_config: Current audio configuration
+        timing_config: Current timing configuration
+
+    Returns:
+        True if save was successful, False otherwise
+    """
+    config_data: dict[str, Any] = {
+        "audio": asdict(audio_config),
+        "timing": asdict(timing_config),
+    }
+    try:
+        with open(USER_CONFIG_FILE, "w") as f:
+            json.dump(config_data, f, indent=2)
+        logger.info(f"Saved user defaults to {USER_CONFIG_FILE}")
+        return True
+    except IOError as e:
+        logger.error(f"Error saving user defaults: {e}")
+        return False
+
+
+def load_user_defaults() -> tuple[AudioConfig, TimingConfig]:
+    """Load user defaults from config file.
+
+    Returns:
+        Tuple of (AudioConfig, TimingConfig) with user defaults,
+        or default configs if no user file exists
+    """
+    if not USER_CONFIG_FILE.exists():
+        return AudioConfig(), TimingConfig()
+
+    try:
+        with open(USER_CONFIG_FILE, "r") as f:
+            config_data = json.load(f)
+
+        audio_data = config_data.get("audio", {})
+        timing_data = config_data.get("timing", {})
+
+        audio_config = AudioConfig(
+            sample_rate=audio_data.get("sample_rate", 44100),
+            default_duration=audio_data.get("default_duration", 0.4),
+            default_volume=audio_data.get("default_volume", 0.8),
+            fade_samples=audio_data.get("fade_samples", 500),
+        )
+
+        timing_config = TimingConfig(
+            default_delay=timing_data.get("default_delay", 0.5),
+            default_cooldown=timing_data.get("default_cooldown", 3.0),
+            min_delay=timing_data.get("min_delay", 0.0),
+            max_delay=timing_data.get("max_delay", 5.0),
+            min_cooldown=timing_data.get("min_cooldown", 0.5),
+            max_cooldown=timing_data.get("max_cooldown", 10.0),
+            min_duration=timing_data.get("min_duration", 0.1),
+            max_duration=timing_data.get("max_duration", 2.0),
+        )
+
+        logger.info(f"Loaded user defaults from {USER_CONFIG_FILE}")
+        return audio_config, timing_config
+    except (json.JSONDecodeError, IOError) as e:
+        logger.warning(f"Could not load user config: {e}")
+        return AudioConfig(), TimingConfig()
+
+
+def get_factory_defaults() -> tuple[AudioConfig, TimingConfig]:
+    """Get factory default configurations.
+
+    Returns:
+        Tuple of (AudioConfig, TimingConfig) with factory defaults
+    """
+    return AudioConfig(), TimingConfig()
