@@ -10,6 +10,7 @@ from datetime import datetime
 from tkinter import ttk
 
 from pynput import keyboard
+from pydbus import SessionBus
 
 from .audio import AudioEngine, get_default_device_name, get_output_devices
 from .config import (
@@ -120,6 +121,16 @@ class BuzzerApp(tk.Tk):
         # Start input listener
         self._listener = keyboard.Listener(on_press=self._on_key_press)
         self._listener.start()
+
+        # Setup DBus media keys listener
+        try:
+            bus = SessionBus()
+            self._media_keys = bus.get('org.gnome.SettingsDaemon.MediaKeys', '/org/gnome/SettingsDaemon/MediaKeys')
+            self._media_keys.MediaPlayerKeyPressed.connect(self._on_media_key)
+            self._media_keys.GrabMediaPlayerKeys("tournament-buzzer", 0)
+        except Exception as e:
+            logger.warning(f"DBus media keys not available: {e}")
+            self._media_keys = None
 
         # Setup cleanup
         self.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -350,6 +361,20 @@ class BuzzerApp(tk.Tk):
         if key in self.trigger_keys:
             self._start_trigger_sequence(str(key))
 
+    def _on_media_key(self, app: str, key: str) -> None:
+        """Handle DBus media key input."""
+        key_map = {
+            'VolumeUp': keyboard.Key.media_volume_up,
+            'VolumeDown': keyboard.Key.media_volume_down,
+            'Next': keyboard.Key.page_down,  # Assuming page_down is next
+            'Previous': keyboard.Key.page_up,  # Assuming page_up is previous
+        }
+        if key in key_map:
+            mapped_key = key_map[key]
+            if self._debug_mode.get():
+                self.after(0, lambda: self._add_debug_log(f"Media key pressed: {key} -> {mapped_key}"))
+            self._on_key_press(mapped_key)
+
     def _start_trigger_sequence(self, key_info: str | None = None) -> None:
         """Start the buzzer trigger sequence."""
         if self._cooldown_locked:
@@ -540,6 +565,11 @@ class BuzzerApp(tk.Tk):
         """Handle application close."""
         self._audio.close()
         self._listener.stop()
+        if self._media_keys:
+            try:
+                self._media_keys.ReleaseMediaPlayerKeys("tournament-buzzer")
+            except Exception:
+                pass
         self.destroy()
 
 

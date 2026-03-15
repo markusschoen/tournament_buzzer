@@ -8,6 +8,7 @@ dependencies = [
     "loguru>=0.7.3",
     "numpy>=2.3.5",
     "pynput>=1.8.1",
+    "pydbus>=0.6.0",
     "sounddevice>=0.5.3",
 ]
 
