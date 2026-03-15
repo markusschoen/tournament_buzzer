@@ -1,6 +1,6 @@
 [project]
 name = "tournament-buzzer"
-version = "1.1.0"
+version = "1.1.2"
 description = "HEMA Tournament Buzzer - A customizable sound buzzer for tournament rings"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -30,3 +30,7 @@ python_version = "3.13"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
