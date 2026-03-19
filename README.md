@@ -35,53 +35,24 @@ Additional sounds available: Double Blast, High Alert, Falling Siren, Rapid Puls
 
 > Linux binary is not currently published by CI; Linux users should install from source.
 
-### 2. Linux install (preferred: evdev backend)
+### 2. Linux install from source (preferred: evdev backend)
 
 ```bash
 # Required system deps (Debian/Ubuntu)
 sudo apt-get update
 sudo apt-get install -y libasound2-dev portaudio19-dev libx11-dev libxext-dev
 
-# Setup venv
-python -m venv .venv
-source .venv/bin/activate
-
-# Install package and evdev
-pip install .
-pip install evdev
-
-# Run
-python main.py
-```
-
-- Linux prefers `python-evdev` for robust key capture.
-- Fallback is `pynput`; this may miss media keys on Wayland or when input device access is blocked.
-- For better Linux input permissions, add user to `input` group:
-  `sudo usermod -aG input $USER` and re-login.
-
-### 3. From source (all platforms)
-
-#### Option A: pip + venv
-
-```bash
-git clone https://github.com/markusschoen/tournament_buzzer.git
-cd tournament_buzzer
-python -m venv .venv
-source .venv/bin/activate
-pip install .
-python main.py
-```
-
-#### Option B (preferred): uv dependency manager
-
-```bash
+# Run app with uv
 git clone https://github.com/markusschoen/tournament_buzzer.git
 cd tournament_buzzer
 uv sync
 uv run python main.py
 ```
 
-> `uv sync` reads `uv.lock` and installs pinned dependencies into an isolated environment.
+- Linux prefers `python-evdev` for robust key capture.
+- Fallback is `pynput`; this may miss media keys on Wayland or when input device access is blocked.
+- For better Linux input permissions, add user to `input` group:
+  `sudo usermod -aG input $USER` and re-login.
 
 ## Usage
 
