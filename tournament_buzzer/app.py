@@ -3,15 +3,15 @@
 This module ties together all components and manages the application lifecycle.
 """
 
+import os
 import threading
 import time
 import tkinter as tk
 from datetime import datetime
-from tkinter import ttk
-
-from pynput import keyboard
+from tkinter import messagebox, ttk
 
 from .audio import AudioEngine, get_default_device_name, get_output_devices
+from .key_listener import create_key_listener, normalize_key_name
 from .config import (
     COLORS,
     DEFAULT_TRIGGER_KEYS,
@@ -91,6 +91,8 @@ class BuzzerApp(tk.Tk):
         self.audio_config = audio_config
         self.timing_config = timing_config
         self.trigger_keys = trigger_keys or DEFAULT_TRIGGER_KEYS
+        # Normalized trigger key names for cross-backend comparisons
+        self._trigger_key_names = {normalize_key_name(str(k)) for k in self.trigger_keys}
 
         # State
         self._cooldown_locked = False
@@ -118,8 +120,40 @@ class BuzzerApp(tk.Tk):
         self._build_ui()
 
         # Start input listener
-        self._listener = keyboard.Listener(on_press=self._on_key_press)
-        self._listener.start()
+        # On Linux, attempt to use evdev (better media key capture), but fall back to
+        # pynput if evdev cannot access input devices.
+        self._listener = create_key_listener(
+            on_press=self._on_key_press,
+            trigger_keys=self._trigger_key_names,
+            suppress=True,
+            debug_callback=self._add_debug_log,
+        )
+
+        try:
+            self._listener.start()
+        except RuntimeError as e:
+            # If evdev fails (no readable /dev/input/event*), fall back to pynput.
+            self._add_debug_log(f"Key listener failed: {e}. Falling back to pynput.")
+
+            # Show user a helpful message once.
+            if "TOURNAMENT_BUZZER_DISABLE_EVDEV" not in os.environ:
+                messagebox.showwarning(
+                    "Input Device Access",
+                    "Could not access any /dev/input/event* devices.\n"
+                    "The app will use a fallback listener, but media keys may not work.\n\n"
+                    "To enable evdev, add your user to the `input` group (and log out/in):\n"
+                    "  sudo usermod -aG input $USER\n"
+                    "Then restart the app.",
+                )
+
+            os.environ["TOURNAMENT_BUZZER_DISABLE_EVDEV"] = "1"
+            self._listener = create_key_listener(
+                on_press=self._on_key_press,
+                trigger_keys=self._trigger_key_names,
+                suppress=True,
+                debug_callback=self._add_debug_log,
+            )
+            self._listener.start()
 
         # Setup cleanup
         self.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -343,12 +377,13 @@ class BuzzerApp(tk.Tk):
 
     def _on_key_press(self, key) -> None:
         """Handle keyboard input."""
+        key_str = str(key)
         if self._debug_mode.get():
-            key_str = str(key)
             self.after(0, lambda: self._add_debug_log(f"Key pressed: {key_str}"))
 
-        if key in self.trigger_keys:
-            self._start_trigger_sequence(str(key))
+        norm_key = normalize_key_name(key_str)
+        if norm_key in self._trigger_key_names:
+            self._start_trigger_sequence(key_str)
 
     def _start_trigger_sequence(self, key_info: str | None = None) -> None:
         """Start the buzzer trigger sequence."""

@@ -11,9 +11,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            artifact_name: tournament-buzzer-linux
-            asset_name: tournament-buzzer-linux
           - os: windows-latest
             artifact_name: tournament-buzzer-windows.exe
             asset_name: tournament-buzzer-windows.exe
@@ -32,12 +29,6 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Install system dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libasound2-dev portaudio19-dev libx11-dev libxext-dev
-
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
@@ -48,12 +39,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller
           pip install .
-
-      - name: Build executable (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          pyinstaller --onefile --windowed --name tournament-buzzer main.py
-          mv dist/tournament-buzzer dist/${{ matrix.artifact_name }}
 
       - name: Build executable (Windows)
         if: runner.os == 'Windows'
@@ -94,7 +79,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            artifacts/tournament-buzzer-linux/tournament-buzzer-linux
             artifacts/tournament-buzzer-windows.exe/tournament-buzzer-windows.exe
             artifacts/tournament-buzzer-macos.zip/tournament-buzzer-macos.zip
           generate_release_notes: true
