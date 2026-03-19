@@ -636,9 +636,10 @@ wheels = [
 
 [[package]]
 name = "tournament-buzzer"
-version = "0.1.0"
+version = "1.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "evdev" },
     { name = "loguru" },
     { name = "numpy" },
     { name = "pynput" },
@@ -654,10 +655,15 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
 ]
+linux = [
+    { name = "evdev" },
+]
 
 [package.metadata]
 requires-dist = [
     { name = "codespell", marker = "extra == 'dev'", specifier = ">=2.4.1" },
+    { name = "evdev", specifier = ">=1.9.2" },
+    { name = "evdev", marker = "extra == 'linux'", specifier = ">=1.0.3" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.19.0" },
     { name = "numpy", specifier = ">=2.3.5" },
@@ -668,7 +674,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14.7" },
     { name = "sounddevice", specifier = ">=0.5.3" },
 ]
-provides-extras = ["dev"]
+provides-extras = ["dev", "linux"]
 
 [[package]]
 name = "typing-extensions"

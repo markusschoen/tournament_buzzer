@@ -110,6 +110,8 @@ The app responds to these keys by default (useful for wireless presenters):
 - **macOS**: macOS 11 (Big Sur) or later
 - **Linux**: Most modern distributions (requires ALSA or PulseAudio)
 
+> ⚠️ **Linux note (Ubuntu/Wayland)**: Some Bluetooth presentation remotes send media keys (Volume Up/Down) which may be captured by the OS before the app sees them. If you notice the system volume changing instead of the buzzer triggering, try running the app under X11 (e.g. set `GDK_BACKEND=x11`) or run with sufficient permissions to read input events.
+
 ### Linux Audio Dependencies
 
 On Linux, you may need to install audio libraries:
@@ -124,7 +126,26 @@ sudo dnf install alsa-lib-devel portaudio-devel
 # Arch
 sudo pacman -S alsa-lib portaudio
 ```
+### Linux Input Capture (Optional)
 
+For reliable detection of Bluetooth remote button presses (especially media keys), the app can optionally use the `python-evdev` backend to read events from `/dev/input/event*`.
+
+```bash
+pip install evdev
+```
+
+Once enabled, the app will attempt to open all readable `/dev/input/event*` devices and will log which devices are being monitored (check the debug log panel).
+
+> ⚠️ On many distributions, reading input event devices requires root or membership in the `input` group:
+> ```bash
+> sudo usermod -aG input $USER
+> ```
+
+If you run into issues with this approach (e.g., in CI or headless testing), you can force the app to use the default `pynput` backend by setting:
+
+```bash
+export TOURNAMENT_BUZZER_DISABLE_EVDEV=1
+```
 ## Building from Source
 
 To create a standalone executable:

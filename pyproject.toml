@@ -5,6 +5,7 @@ description = "HEMA Tournament Buzzer - A customizable sound buzzer for tourname
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "evdev>=1.9.2",
     "loguru>=0.7.3",
     "numpy>=2.3.5",
     "pynput>=1.8.1",
@@ -19,6 +20,10 @@ dev = [
     "pytest>=9.0.1",
     "ruff>=0.14.7",
     "pyinstaller>=6.0.0",
+]
+
+linux = [
+    "evdev>=1.0.3",
 ]
 
 [project.scripts]

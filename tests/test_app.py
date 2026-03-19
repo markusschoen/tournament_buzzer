@@ -60,11 +60,11 @@ class TestBuzzerApp:
             yield mock, engine_instance
 
     @pytest.fixture
-    def mock_keyboard(self):
-        """Mock the keyboard listener."""
-        with patch("tournament_buzzer.app.keyboard") as mock:
+    def mock_key_listener(self):
+        """Mock the key listener factory."""
+        with patch("tournament_buzzer.app.create_key_listener") as mock:
             listener_instance = MagicMock()
-            mock.Listener.return_value = listener_instance
+            mock.return_value = listener_instance
             yield mock, listener_instance
 
     @pytest.fixture
@@ -77,7 +77,7 @@ class TestBuzzerApp:
                 yield mock_get, mock_default
 
     @pytest.fixture
-    def app(self, mock_audio_engine, mock_keyboard, mock_devices, tmp_path):
+    def app(self, mock_audio_engine, mock_key_listener, mock_devices, tmp_path):
         """Create a BuzzerApp for testing."""
         try:
             # Hide tk window
@@ -108,7 +108,7 @@ class TestBuzzerApp:
         assert app.timing_config is not None
 
     def test_custom_configs(
-        self, mock_audio_engine, mock_keyboard, mock_devices, tmp_path
+        self, mock_audio_engine, mock_key_listener, mock_devices, tmp_path
     ):
         """Test that custom configs are respected."""
         try:
@@ -191,11 +191,11 @@ class TestBuzzerApp:
 
         assert app._event_log == []
 
-    def test_on_close(self, mock_audio_engine, mock_keyboard, mock_devices, tmp_path):
+    def test_on_close(self, mock_audio_engine, mock_key_listener, mock_devices, tmp_path):
         """Test cleanup on close."""
         try:
             _, engine = mock_audio_engine
-            _, listener = mock_keyboard
+            _, listener = mock_key_listener
 
             app_config = AppConfig(log_file=tmp_path / "test.json")
             app = BuzzerApp(app_config=app_config, trigger_keys=[])
@@ -219,13 +219,13 @@ class TestBuzzerAppIntegration:
     def mock_all_externals(self):
         """Mock all external dependencies."""
         with patch("tournament_buzzer.app.AudioEngine") as mock_audio:
-            with patch("tournament_buzzer.app.keyboard") as mock_kb:
+            with patch("tournament_buzzer.app.create_key_listener") as mock_listener:
                 with patch("tournament_buzzer.app.get_output_devices") as mock_get:
                     with patch(
                         "tournament_buzzer.app.get_default_device_name"
                     ) as mock_default:
                         mock_audio.return_value = MagicMock()
-                        mock_kb.Listener.return_value = MagicMock()
+                        mock_listener.return_value = MagicMock()
                         mock_get.return_value = [(0, "Test Device")]
                         mock_default.return_value = "Test Device"
                         yield
