@@ -26,61 +26,62 @@ Additional sounds available: Double Blast, High Alert, Falling Siren, Rapid Puls
 
 ## Installation
 
-### Option 1: Download Pre-built Executable (Recommended)
+### 1. Quick start (Windows/macOS)
 
-1. Go to the [Releases](../../releases) page
-2. Download the executable for your operating system:
+1. Download from releases:
    - **Windows**: `tournament-buzzer-windows.exe`
-   - **macOS**: `tournament-buzzer-macos.zip` (extract to get the `.app`)
-   - **Linux**: `tournament-buzzer-linux`
-3. Run the application
+   - **macOS**: `tournament-buzzer-macos.zip` (extract to get `.app`)
+2. Run it.
 
-> **Note for macOS users**: After extracting the zip, you may need to right-click the app and select "Open" the first time to bypass Gatekeeper.
+> Linux binary is not currently published by CI; Linux users should install from source.
 
-> **Note for Linux users**: You may need to make the file executable first: `chmod +x tournament-buzzer-linux`
-
-### Option 2: Install from Source
-
-Requires Python 3.13 or later.
+### 2. Linux install (preferred: evdev backend)
 
 ```bash
-# Clone the repository
-git clone https://github.com/markusschoen/tournament_buzzer.git
-cd tournament_buzzer
+# Required system deps (Debian/Ubuntu)
+sudo apt-get update
+sudo apt-get install -y libasound2-dev portaudio19-dev libx11-dev libxext-dev
 
-# Create a virtual environment (recommended)
+# Setup venv
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+source .venv/bin/activate
 
-# Install the package
+# Install package and evdev
 pip install .
+pip install evdev
 
-# Run the application
+# Run
 python main.py
-# Or use the installed command:
-tournament-buzzer
 ```
 
-### Option 3: Development Installation
+- Linux prefers `python-evdev` for robust key capture.
+- Fallback is `pynput`; this may miss media keys on Wayland or when input device access is blocked.
+- For better Linux input permissions, add user to `input` group:
+  `sudo usermod -aG input $USER` and re-login.
+
+### 3. From source (all platforms)
+
+#### Option A: pip + venv
 
 ```bash
-# Clone and enter the repository
 git clone https://github.com/markusschoen/tournament_buzzer.git
 cd tournament_buzzer
-
-# Create virtual environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install with dev dependencies
-pip install -e ".[dev]"
-
-# Install pre-commit hooks
-pre-commit install
-
-# Run tests
-pytest
+source .venv/bin/activate
+pip install .
+python main.py
 ```
+
+#### Option B (preferred): uv dependency manager
+
+```bash
+git clone https://github.com/markusschoen/tournament_buzzer.git
+cd tournament_buzzer
+uv sync
+uv run python main.py
+```
+
+> `uv sync` reads `uv.lock` and installs pinned dependencies into an isolated environment.
 
 ## Usage
 
