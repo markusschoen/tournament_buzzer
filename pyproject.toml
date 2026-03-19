@@ -1,11 +1,11 @@
 [project]
 name = "tournament-buzzer"
-version = "1.1.0"
+version = "1.2.0"
 description = "HEMA Tournament Buzzer - A customizable sound buzzer for tournament rings"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "evdev>=1.9.2",
+    "evdev>=1.9.2; sys_platform == 'linux'",
     "loguru>=0.7.3",
     "numpy>=2.3.5",
     "pynput>=1.8.1",
