@@ -637,7 +637,7 @@ wheels = [
 [[package]]
 name = "tournament-buzzer"
 version = "1.2.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "evdev", marker = "sys_platform == 'linux'" },
     { name = "loguru" },

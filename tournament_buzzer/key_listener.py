@@ -17,6 +17,7 @@ The `TOURNAMENT_BUZZER_DISABLE_EVDEV` environment variable can be set to "1" or
 from __future__ import annotations
 
 import os
+import re
 import select
 import sys
 import threading
@@ -36,6 +37,35 @@ except ImportError:  # pragma: no cover
     list_devices = None  # type: ignore
 
 
+# Common X11 keysyms for media volume keys (often reported by remotes on Linux).
+_X11_KEYSYM_VOLUME_DOWN = 0x1008FF11
+_X11_KEYSYM_VOLUME_UP = 0x1008FF13
+
+
+def _extract_vk_code(raw_key: str) -> Optional[int]:
+    """Extract an integer keycode from backend-specific string formats.
+
+    Handles forms like "<269025041>", "0x1008ff11", and
+    "KeyCode(vk=269025041)".
+    """
+
+    token = raw_key.strip().lower()
+    if token.startswith("<") and token.endswith(">"):
+        token = token[1:-1].strip()
+
+    match = re.search(r"vk\s*=\s*(0x[0-9a-f]+|\d+)", token)
+    if match:
+        token = match.group(1)
+
+    if not token:
+        return None
+
+    try:
+        return int(token, 0)
+    except ValueError:
+        return None
+
+
 def normalize_key_name(key_str: str) -> str:
     """Normalize various key name representations into a canonical form.
 
@@ -49,6 +79,7 @@ def normalize_key_name(key_str: str) -> str:
     """
 
     s = key_str.strip().lower()
+    vk_code = _extract_vk_code(s)
 
     # Remove pynput prefixes
     for prefix in ("key.", "keycode."):
@@ -59,6 +90,10 @@ def normalize_key_name(key_str: str) -> str:
     if (s.startswith("'") and s.endswith("'")) or (s.startswith('"') and s.endswith('"')):
         s = s[1:-1]
 
+    # Normalize angle-bracket representations, e.g. "<269025041>"
+    if s.startswith("<") and s.endswith(">"):
+        s = s[1:-1].strip()
+
     # Remove evdev prefix
     if s.startswith("key_"):
         s = s[len("key_") :]
@@ -66,6 +101,19 @@ def normalize_key_name(key_str: str) -> str:
     # Normalize common media key naming differences
     if s.startswith("media_"):
         s = s[len("media_") :]
+
+    # Normalize common X11 media key names.
+    compact = s.replace("_", "").replace("-", "")
+    if compact in {"xf86audiolowervolume", "audiolowervolume"}:
+        return "volume_down"
+    if compact in {"xf86audioraisevolume", "audioraisevolume"}:
+        return "volume_up"
+
+    # Normalize numeric X11 keysyms frequently used by media key remotes.
+    if vk_code == _X11_KEYSYM_VOLUME_DOWN:
+        return "volume_down"
+    if vk_code == _X11_KEYSYM_VOLUME_UP:
+        return "volume_up"
 
     # Ensure volume_up/volume_down style
     if s.startswith("volume") and not s.startswith("volume_"):

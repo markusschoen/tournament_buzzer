@@ -29,6 +29,13 @@ linux = [
 [project.scripts]
 tournament-buzzer = "tournament_buzzer.app:main"
 
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv]
+package = true
+
 [tool.mypy]
 python_version = "3.13"
 warn_return_any = true
