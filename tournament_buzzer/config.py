@@ -49,9 +49,9 @@ class AppConfig:
 # Default trigger keys - can be customized per installation
 DEFAULT_TRIGGER_KEYS = [
     keyboard.Key.media_volume_up,
-    keyboard.Key.media_volume_down,
-    keyboard.Key.page_down,
-    keyboard.Key.page_up,
+    # keyboard.Key.media_volume_down,
+    # keyboard.Key.page_down,
+    # keyboard.Key.page_up,
 ]
 
 # Available sound types - ordered for tournament ring assignment
